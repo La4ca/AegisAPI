@@ -24,10 +24,20 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+// app.use(
+//   cors({
+//     origin:
+//       process.env.FRONTEND_URL || "https://aegisapi-mkic.onrender.com/api",
+//     credentials: true,
+//   }),
+// );
 app.use(
   cors({
-    origin:
-      process.env.FRONTEND_URL || "https://aegisapi-mkic.onrender.com/api",
+    origin: [
+      "http://localhost:3000",
+      "https://aegis-health-nu.vercel.app",
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
     credentials: true,
   }),
 );

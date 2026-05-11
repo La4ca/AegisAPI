@@ -21,6 +21,7 @@ const Appointment = require("./models/Appointment.model");
 const Referral = require("./models/Referral.model");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Security middleware
 app.use(helmet());

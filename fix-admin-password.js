@@ -1,60 +1,26 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const User = require('./models/User.model');
+// save as fix-admin-password.js
+const mongoose = require("mongoose");
+const CryptoJS = require("crypto-js");
+require("dotenv").config();
 
-// MongoDB connection string
-const MONGODB_URI = 'mongodb://localhost:27017/aegis';
+const User = require("./models/User.model");
 
-async function fixAdminPassword() {
-  try {
-    // Connect to MongoDB
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    console.log('Connected to MongoDB');
+const mongoURI =
+  "mongodb+srv://laica060105_db_user:zfq23XgasYNKZUAT@cluster0.47a3p7n.mongodb.net/aegis?retryWrites=true&w=majority";
+const secret = process.env.JWT_SECRET; // must be the same as on Render
 
-    // Check if admin exists
-    let admin = await User.findOne({ email: 'admin@aegis.com' });
-    
-    if (admin) {
-      // Update existing admin password
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      admin.passwordHash = hashedPassword;
-      await admin.save();
-      console.log('Admin password updated successfully!');
-      console.log('Email: admin@aegis.com');
-      console.log('Password: admin123');
-    } else {
-      // Create new admin
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      admin = new User({
-        email: 'admin@aegis.com',
-        passwordHash: hashedPassword,
-        role: 'admin',
-        name: 'System Administrator',
-        phone: '0000000000',
-        isActive: true
-      });
-      await admin.save();
-      console.log('Admin user created successfully!');
-      console.log('Email: admin@aegis.com');
-      console.log('Password: admin123');
-    }
-
-    console.log('\nAdmin credentials:');
-    console.log('-------------------');
-    console.log('Email: admin@aegis.com');
-    console.log('Password: admin123');
-    console.log('-------------------');
-
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    await mongoose.disconnect();
-    console.log('\nDisconnected from MongoDB');
+async function fixAdmin() {
+  await mongoose.connect(mongoURI);
+  const admin = await User.findOne({ email: "admin@aegis.com" });
+  if (admin) {
+    const newEncrypted = CryptoJS.AES.encrypt("admin123", secret).toString();
+    admin.password = newEncrypted;
+    await admin.save();
+    console.log("Admin password re-encrypted with the provided secret.");
+  } else {
+    console.log("Admin not found.");
   }
+  await mongoose.disconnect();
 }
 
-// Run the function
-fixAdminPassword();
+fixAdmin();
